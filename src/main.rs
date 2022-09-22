@@ -18,20 +18,12 @@ enum Paths {
 }
 
 fn check_paths(left: &str, right: &str) -> Paths {
-    let left_exists = Path::new(left).exists();
-    let right_exists = Path::new(right).exists();
-
-    if left_exists && right_exists {
-        return Paths::Both;
+    match (Path::new(left).exists(), Path::new(right).exists()) {
+        (true, true) => Paths::Both,
+        (false, true) => Paths::LeftMissing,
+        (true, false) => Paths::RightMissing,
+        (false, false) => Paths::BothMissing,
     }
-    if !left_exists && right_exists {
-        return Paths::LeftMissing;
-    }
-    if left_exists && !right_exists {
-        return Paths::RightMissing;
-    }
-
-    return Paths::BothMissing;
 }
 
 fn link(a: &str, b: &str) -> std::io::Result<()> {
@@ -39,6 +31,8 @@ fn link(a: &str, b: &str) -> std::io::Result<()> {
 }
 
 fn main() -> std::io::Result<()> {
+    if env::args().len() != 3 {}
+
     let args: Vec<String> = env::args().collect();
 
     match check_paths(&args[1], &args[2]) {
