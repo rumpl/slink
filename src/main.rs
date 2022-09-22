@@ -6,9 +6,20 @@
  * think this stuff is worth it, you can buy me a beer in return.  Djordje Lukic
  * -----------------------------------------------------------------------------
  */
-use std::env;
+use clap::Parser;
+use std::error::Error;
 use std::os::unix::fs;
 use std::path::Path;
+
+#[derive(Parser, Debug)]
+#[clap(author = "Djordje Lukic", version, about = "Link like a boss")]
+struct Arguments {
+    #[clap()]
+    left: String,
+
+    #[clap()]
+    right: String,
+}
 
 enum Paths {
     Both,
@@ -27,19 +38,26 @@ fn check_paths(left: &str, right: &str) -> Paths {
 }
 
 fn link(a: &str, b: &str) -> std::io::Result<()> {
-    fs::symlink(a, b)
+    fs::symlink(a, b)?;
+    println!("Link {} -> {} created", b, a);
+    Ok(())
 }
 
-fn main() -> std::io::Result<()> {
-    if env::args().len() != 3 {}
+fn run(a: &str, b: &str) -> Result<(), Box<dyn Error>> {
+    match check_paths(a, b) {
+        Paths::Both => Err("Both paths present, don't know what to do".into()),
+        Paths::LeftMissing => Ok(link(b, a)?),
+        Paths::RightMissing => Ok(link(a, b)?),
+        Paths::BothMissing => Err("Both paths missing, don't know what to do".into()),
+    }
+}
 
-    let args: Vec<String> = env::args().collect();
+fn main() -> Result<(), Box<dyn Error>> {
+    let arguments = Arguments::parse();
 
-    match check_paths(&args[1], &args[2]) {
-        Paths::Both => eprint!("Both paths present, don't know what to do"),
-        Paths::LeftMissing => link(&args[2], &args[1])?,
-        Paths::RightMissing => link(&args[1], &args[2])?,
-        Paths::BothMissing => eprint!("Both paths missing, don't know what to do"),
+    if let Err(e) = run(&arguments.left, &arguments.right) {
+        println!("Error: {}", e);
+        std::process::exit(1);
     }
 
     Ok(())
