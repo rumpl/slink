@@ -1,6 +1,6 @@
 # slink
 
-Create symlinks without hussle.
+Create symlinks without hassle.
 
 Do you know how to use `ln -s`? Do you really know which comes first the source or the target file? Do you know what's source and what's target?
 
